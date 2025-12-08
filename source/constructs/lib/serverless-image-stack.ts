@@ -172,6 +172,13 @@ export class ServerlessImageHandlerStack extends Stack {
       default: "No",
     });
 
+    const sharpSizeLimitParameter = new CfnParameter(this, "SharpSizeLimitParameter", {
+      type: "String",
+      description:
+        "The maximum number of pixels allowed in input images before Sharp rejects them. Sharp's default limit is 268,402,689 pixels (~16,384 x 16,384). Use '0' to disable the limit entirely (not recommended for production). Leave empty to use Sharp's default limit. Example: '500000000' allows images up to ~22,360 x 22,360 pixels.",
+      default: "",
+    });
+
    
     console.warn("\n" + "=".repeat(80));
     console.warn("⚠️  S3 Object Lambda Feature Deprecation Notice");
@@ -218,14 +225,13 @@ export class ServerlessImageHandlerStack extends Stack {
           DeployCloudWatchDashboard: "Yes",
           SolutionId: props.solutionId,
           Version: props.solutionVersion,
-          SharpSizeLimit: "",
         },
       },
       lazy: false,
     });
 
     const anonymousUsage = `${solutionMapping.findInMap("Config", "AnonymousUsage")}`;
-    const sharpSizeLimit = `${solutionMapping.findInMap("Config", "SharpSizeLimit")}`;
+    const sharpSizeLimit = sharpSizeLimitParameter.valueAsString;
     const sendAnonymousStatistics = new CfnCondition(this, "SendAnonymousStatistics", {
       expression: Fn.conditionEquals(anonymousUsage, "Yes"),
     });
@@ -385,6 +391,10 @@ export class ServerlessImageHandlerStack extends Stack {
               existingCloudFrontDistributionId.logicalId,
             ],
           },
+          {
+            Label: { default: "Image Processing" },
+            Parameters: [sharpSizeLimitParameter.logicalId],
+          },
         ],
         ParameterLabels: {
           [enableS3ObjectLambdaParameter.logicalId]: {
@@ -425,6 +435,9 @@ export class ServerlessImageHandlerStack extends Stack {
           },
           [existingCloudFrontDistributionId.logicalId]: {
             default: "Existing CloudFront Distribution Id",
+          },
+          [sharpSizeLimitParameter.logicalId]: {
+            default: "Sharp Size Limit (pixels)",
           },
         },
       },
