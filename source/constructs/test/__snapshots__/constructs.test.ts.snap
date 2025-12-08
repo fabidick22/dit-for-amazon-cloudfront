@@ -177,7 +177,6 @@ exports[`Dynamic Image Transformation for Amazon CloudFront Stack Snapshot 1`] =
       "Config": {
         "AnonymousUsage": "Yes",
         "DeployCloudWatchDashboard": "Yes",
-        "SharpSizeLimit": "",
         "SolutionId": "S0ABC",
         "Version": "v7.0.1",
       },
@@ -266,6 +265,14 @@ exports[`Dynamic Image Transformation for Amazon CloudFront Stack Snapshot 1`] =
             "ExistingCloudFrontDistributionIdParameter",
           ],
         },
+        {
+          "Label": {
+            "default": "Image Processing",
+          },
+          "Parameters": [
+            "SharpSizeLimitParameter",
+          ],
+        },
       ],
       "ParameterLabels": {
         "AutoWebPParameter": {
@@ -312,6 +319,9 @@ exports[`Dynamic Image Transformation for Amazon CloudFront Stack Snapshot 1`] =
         },
         "SecretsManagerSecretParameter": {
           "default": "SecretsManager Secret",
+        },
+        "SharpSizeLimitParameter": {
+          "default": "Sharp Size Limit (pixels)",
         },
         "SourceBucketsParameter": {
           "default": "Source Buckets",
@@ -603,6 +613,11 @@ exports[`Dynamic Image Transformation for Amazon CloudFront Stack Snapshot 1`] =
     "SecretsManagerSecretParameter": {
       "Default": "",
       "Description": "The name of AWS Secrets Manager secret. You need to create your secret under this name.",
+      "Type": "String",
+    },
+    "SharpSizeLimitParameter": {
+      "Default": "",
+      "Description": "The maximum number of pixels allowed in input images before Sharp rejects them. Sharp's default limit is 268,402,689 pixels (~16,384 x 16,384). Use '0' to disable the limit entirely (not recommended for production). Leave empty to use Sharp's default limit. Example: '500000000' allows images up to ~22,360 x 22,360 pixels.",
       "Type": "String",
     },
     "SourceBucketsParameter": {
@@ -1953,11 +1968,7 @@ function processQueryParams(querystring) {
               "Ref": "SecretsManagerKeyParameter",
             },
             "SHARP_SIZE_LIMIT": {
-              "Fn::FindInMap": [
-                "Solution",
-                "Config",
-                "SharpSizeLimit",
-              ],
+              "Ref": "SharpSizeLimitParameter",
             },
             "SOLUTION_ID": "S0ABC",
             "SOLUTION_VERSION": "Omitted to remove snapshot dependency on solution version",
