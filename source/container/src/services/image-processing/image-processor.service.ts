@@ -8,6 +8,7 @@ import { ImageProcessingError } from './types';
 import { ErrorMapper } from './utils/error-mapping';
 import { TransformationMapper } from './transformation-engine/transformation-mapper';
 import { EditApplicator } from './transformation-engine/edit-applicator';
+import { SharpUtils } from './utils/sharp-utils';
 
 export class ImageProcessorService {
   private static instance: ImageProcessorService;
@@ -61,6 +62,7 @@ export class ImageProcessorService {
 
       const isExpectedToBeAnimated = imageRequest.sourceImageContentType == 'image/gif';
       let sharpOptions = {
+        ...SharpUtils.getDefaultSharpOptions(),
         failOnError: true,
         animated: isExpectedToBeAnimated
       }

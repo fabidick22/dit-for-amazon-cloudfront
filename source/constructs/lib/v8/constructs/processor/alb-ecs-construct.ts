@@ -53,6 +53,7 @@ export interface AlbEcsConstructProps {
   stackName: string;
   configTableArn?: string;
   originOverrideHeader?: string;
+  sharpSizeLimit?: string;
 }
 
 /**
@@ -98,7 +99,8 @@ export class AlbEcsConstruct extends Construct {
       props.imageUri,
       props.ecsConfig,
       props.configTableArn,
-      props.originOverrideHeader
+      props.originOverrideHeader,
+      props.sharpSizeLimit
     );
 
     // ALB configuration based on deployment mode
@@ -164,7 +166,8 @@ export class AlbEcsConstruct extends Construct {
     imageUri: string,
     ecsConfig: EcsConfig,
     configTableArn?: string,
-    originOverrideHeader?: string
+    originOverrideHeader?: string,
+    sharpSizeLimit?: string
   ): logs.LogGroup {
     const logGroup = new logs.LogGroup(this, "ContainerLogGroup", {
       retention: LOG_RETENTION_DAYS,
@@ -192,6 +195,11 @@ export class AlbEcsConstruct extends Construct {
     // Indicates custom header for origin override functionality, mapping lookup is skipped if the header is present in request
     if (originOverrideHeader) {
       environment.CUSTOM_ORIGIN_HEADER = originOverrideHeader;
+    }
+
+    // Sharp size limit configuration
+    if (sharpSizeLimit !== undefined) {
+      environment.SHARP_SIZE_LIMIT = sharpSizeLimit;
     }
 
     const container = taskDefinition.addContainer("ImageProcessingContainer", {
