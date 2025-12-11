@@ -8,6 +8,7 @@ import { ImageProcessingError } from './types';
 import { ErrorMapper } from './utils/error-mapping';
 import { TransformationMapper } from './transformation-engine/transformation-mapper';
 import { EditApplicator } from './transformation-engine/edit-applicator';
+import { SharpUtils } from './utils/sharp-utils';
 
 export class ImageProcessorService {
   private static instance: ImageProcessorService;
@@ -43,14 +44,17 @@ export class ImageProcessorService {
         imageRequest.timings.imageProcessing.transformationApplicationMs = 0;
         return imageBuffer;
       }
-      
+
+      // Get default Sharp options with size limit configuration
+      const defaultOptions = SharpUtils.getDefaultSharpOptions();
+
       // Extract source dimensions to validate auto-resize transformations
-      const metadata = await sharp(imageBuffer).metadata();
+      const metadata = await sharp(imageBuffer, defaultOptions).metadata();
       this.preventAutoUpscaling(imageRequest, metadata.width);
-      
+
       // We need to map Transformations to Edits before Sharp image instantiation because it influences whether or not we strip or keep metadata
       const imageEdits = await TransformationMapper.mapToImageEdits(imageRequest.transformations);
-      
+
       console.log(JSON.stringify({
         requestId: imageRequest.requestId,
         component: 'TransformationMapper',
@@ -61,6 +65,7 @@ export class ImageProcessorService {
 
       const isExpectedToBeAnimated = imageRequest.sourceImageContentType == 'image/gif';
       let sharpOptions = {
+        ...defaultOptions,
         failOnError: true,
         animated: isExpectedToBeAnimated
       }
